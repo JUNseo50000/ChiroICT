@@ -21,7 +21,7 @@ def speak(text):
     os.remove(filename)
 
 
-test = ''
+test = '잘 목소리가 나오는지 테스트 하는 방법입니다. you got it?'
 speak(test)
 
 

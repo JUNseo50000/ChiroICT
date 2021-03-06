@@ -97,6 +97,7 @@ class weather:
         # check rain status
         # 1456 -> 비, 소나기, 빗방울, 빗방울/눈날림
 
+        # todo
         if self.precipitation_type == 1 or self.precipitation_type == 4 or self.precipitation_type == 5 or self.precipitation_type == 6:
             # speak something and open drawer
             pass
