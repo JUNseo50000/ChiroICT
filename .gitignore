@@ -1,8 +1,0 @@
-env/
-.vscode/
-
-models/
-result/
-img/
-
-DL_face.py
