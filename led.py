@@ -1,28 +1,27 @@
 import time
 import pianokeyboard
-import RPi.GPIO as GPIO
+import constants
+# import RPi.GPIO as GPIO
 
 past_time = None
 current_time = None
 # -1 is initial value for comparsion : current_pin_nums[0]
 current_pin_nums = [-1]
 
-# example
-LED_C4 = 16
-LED_D4 = 26
-
-index2pin = {4:16, 6:26}
+# setup
+# GPIO.setup(constants.constants["LED_C4"], GPIO.OUT)
+# GPIO.setup(constants.constants["LED_D4"], GPIO.OUT)
 
 
 temp_pressing_set = set()
 
 def turnonLED(pin_number):
-    GPIO.output(pin_number, GPIO.LOW)
-    print("trun on " + str(pin_number))
+    # GPIO.output(index2pin[pin_number], GPIO.HIGH)
+    print("trun on " + str(constants.index2pin[pin_number]) + "LED")
 
 def turnoffLED(pin_number):
-    GPIO.output(pin_number, GPIO.HIGH)
-    print("trun off " + str(pin_number))
+    # GPIO.output(index2pin[pin_number], GPIO.LOW)
+    print("trun off " + str(constants.index2pin[pin_number]) + "LED")
 
 
 def defaultLEDmode(pressing_keyboard_set):
@@ -31,20 +30,18 @@ def defaultLEDmode(pressing_keyboard_set):
             pass
         else:
             temp_pressing_set.add(ix)
-            turnonLED(index2pin[ix])
+            turnonLED(ix)
     
     # pull out of keyboard but still not remove the ix in temp_pressing_set
     if len(temp_pressing_set) > len(pressing_keyboard_set):
         # set difference
-        pin_number_set = temp_pressing_set - pressing_keyboard_set
-
-        # todo : more efficiently
-        for pin_number in pin_number_set:
-            if pin_number in temp_pressing_set:
-                turnoffLED(pin_number)
-                temp_pressing_set.remove(pin_number)
-                break
+        for pressoff_ix in (temp_pressing_set - pressing_keyboard_set):
+            turnoffLED(pressoff_ix)
+            temp_pressing_set.remove(pressoff_ix)
+            break
             
+
+
 
 
 def guideLEDmode(note, standard_time = 0.666):

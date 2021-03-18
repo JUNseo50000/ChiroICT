@@ -1,8 +1,25 @@
-index_to_pinNumber = { }
-pinNumber_to_index = {}
 
 
-pitch_to_MIDI = {
+keyboard_pin = {
+    "C4" : 23,
+    "D4" : 24,
+    "E4" : 30,
+}
+
+LED_pin = {
+    "LED_C4" : 16,
+    "LED_D4" : 26,
+    "LED_E4" : 30,
+}
+
+index2pin = {
+    0 : LED_pin["LED_C4"], 
+    2 : LED_pin["LED_D4"], 
+    4 : LED_pin["LED_E4"], 
+}
+
+
+pitch2MIDI = {
     "C8": 108,
     "B7": 107,
     "Bb7": 106,
@@ -129,7 +146,7 @@ pitch_to_MIDI = {
     "A0": 21
 }
 
-MIDI_to_pitch = {
+MIDI2pitch = {
     108: "C8",
     107: "B7",
     106: "A#7",

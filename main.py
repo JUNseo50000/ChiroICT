@@ -1,5 +1,4 @@
 import time, keyboard
-# from threading import Thread
 
 import pianokeyboard
 import led
@@ -7,19 +6,26 @@ import led
 # class init
 pianokeyboard = pianokeyboard.PianoKeyboard('Resources/PianoSamples')
 
-# todo : convert ix of pressing_keyboard_set to pitch and pinnumber
-
 ### piano mode state ###
 guide_state = False
 record_state = False
 marking_state = False
 
 
-past_time = None
-current_time = None
 record_list = []
 # for preventing continuous press
 temp_pressing_set = set()
+
+
+'''
+TODO
+1. 일단 가이드 LED를 완성한다.
+2. convertNote에서 화음을 추가한다.
+3. 가이드 LED에 화음을 추가한다.
+4. addHarmony를 구현한다.
+
+
+'''
 
 
 class Note:
@@ -37,15 +43,13 @@ class Note:
         pass
 
 
-# todo : 화음.
+# todo : Harmony
 def convertNote(path):
     temp_datas = []
     # with open(path,"r") as f :
     with open("./music/output.txt","r") as f :
-    # with open(,"r") as f :
         # ['g3,0.5', 'a3,0.5', ... , 'f3,1']
         temp_datas = f.read().split(" ")
-    # print(len(temp_datas))
     
     notes = []
     for temp_data in temp_datas:
@@ -62,10 +66,14 @@ def convertNote(path):
 def guide_mode(notes, speed='Moderato'):
     print("GUIDE MODE.")
 
-    # Moderato 보통빠르게 메트로로놈90 -> 4분음표  0.666..초
+    # Moderato 보통빠르게 Metronome 90 -> Quarter note per 0.666..second
     standard_time = None
     if speed == 'Moderato':
         standard_time = 0.666
+    # 120 bpm
+    elif speed == 'Allegro':
+        standard_time = 0.5
+    # Moderato
     else:
         standard_time = 0.666
 
@@ -153,11 +161,5 @@ def loop():
 
 
 if __name__ == '__main__':
-    # proc1 = Thread(target=pianokeyboard.piano_mode, args=())
-    # proc2 = Thread(target=guide_mode, args=("3",))
-    # proc3 = Thread(target=marking_mode, args=("3",))
-    # proc3 = Thread(target=record_mode, args=("3",))
-
-    
     loop()
     # convertNote('abc')

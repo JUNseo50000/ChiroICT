@@ -1,25 +1,19 @@
-import time, os
-from threading import Thread
+keyboard_pin = {
+    "C4" : 23,
+    "D4" : 24,
+    "E4" : 30,
+}
 
-def funcOne():
-    i = 0
-    while 1:
-        i += 1
-        print(i)
-        time.sleep(1)
+LED_pin = {
+    "LED_C4" : 16,
+    "LED_D4" : 26,
+    "LED_E4" : 30,
+}
 
-def funcTwo(num):
-    text = "abc"
-    while 1:
-        print(text + str(num))
-        time.sleep(3)
+index2pin = {
+    0 : LED_pin["LED_C4"], 
+    2 : LED_pin["LED_D4"], 
+    4 : LED_pin["LED_E4"], 
+}
 
-
-# proc1 = Thread(target=funcOne, args=())
-# # 변수에서 , 꽤나 중요
-# proc2 = Thread(target=funcTwo, args=("3",))
-# proc1.start()
-# proc2.start()
-
-
-print(time.time())
+print(index2pin[0])
