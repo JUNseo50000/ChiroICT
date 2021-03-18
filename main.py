@@ -5,7 +5,7 @@ import pianokeyboard
 import led
 
 # class init
-pianokeyboard = pianokeyboard.PianoKeyboard('Resources/Piano Samples')
+pianokeyboard = pianokeyboard.PianoKeyboard('Resources/PianoSamples')
 
 # todo : convert ix of pressing_keyboard_set to pitch and pinnumber
 
@@ -150,7 +150,6 @@ def loop():
 
 
 if __name__ == '__main__':
-    # todo : change name
     # proc1 = Thread(target=pianokeyboard.piano_mode, args=())
     # proc2 = Thread(target=guide_mode, args=("3",))
     # proc3 = Thread(target=marking_mode, args=("3",))

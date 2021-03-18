@@ -19,7 +19,7 @@ class PianoKeyboard:
 
         self.sounds = []
         for i in range(self.minValue, self.maxValue + 1):
-            self.sounds.append(pygame.mixer.Sound(path + "/Piano " + str(i) + ".mp3"))
+            self.sounds.append(pygame.mixer.Sound(path + "/Piano" + str(i) + ".ogg"))
 
     def pressKeyboard(self, value):
         if value < self.minValue or value > self.maxValue:
