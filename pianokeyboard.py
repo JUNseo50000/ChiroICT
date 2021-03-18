@@ -1,5 +1,5 @@
 import pygame, time, keyboard
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 
 
 PITCH_C4 = 64
@@ -8,10 +8,10 @@ PITCH_D4 = 66
 PIN_D4 = 24
 
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(PIN_C4, GPIO.IN, GPIO.PUD_DOWN)
-GPIO.setup(PIN_D4, GPIO.IN, GPIO.PUD_DOWN)
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setwarnings(False)
+# GPIO.setup(PIN_C4, GPIO.IN, GPIO.PUD_DOWN)
+# GPIO.setup(PIN_D4, GPIO.IN, GPIO.PUD_DOWN)
 
 
 

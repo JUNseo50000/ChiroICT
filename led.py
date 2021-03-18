@@ -1,6 +1,6 @@
 import time
 import pianokeyboard
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 past_time = None
 current_time = None
@@ -10,6 +10,9 @@ current_pin_nums = [-1]
 # example
 LED_C4 = 16
 LED_D4 = 26
+
+index2pin = {4:16, 6:26}
+
 
 temp_pressing_set = set()
 
@@ -28,7 +31,7 @@ def defaultLEDmode(pressing_keyboard_set):
             pass
         else:
             temp_pressing_set.add(ix)
-            turnonLED(ix)
+            turnonLED(index2pin[ix])
     
     # pull out of keyboard but still not remove the ix in temp_pressing_set
     if len(temp_pressing_set) > len(pressing_keyboard_set):

@@ -33,6 +33,9 @@ class Note:
     def addEndtime(self, endtime):    
         self.endtime = endtime
 
+    def addHarmony(self, pitch):
+        pass
+
 
 # todo : 화음.
 def convertNote(path):
