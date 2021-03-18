@@ -1,4 +1,6 @@
-import time, keyboard
+import time, os
+import keyboard
+from threading import Thread
 
 import pianokeyboard
 import led
@@ -8,7 +10,7 @@ pianokeyboard = pianokeyboard.PianoKeyboard('Resources/PianoSamples')
 
 ### piano mode state ###
 guide_state = False
-record_state = False
+record_state = True
 marking_state = False
 
 
@@ -19,10 +21,7 @@ temp_pressing_set = set()
 
 '''
 TODO
-1. 일단 가이드 LED를 완성한다.
-2. convertNote에서 화음을 추가한다.
-3. 가이드 LED에 화음을 추가한다.
-4. addHarmony를 구현한다.
+레코드모드
 
 
 '''
@@ -30,7 +29,8 @@ TODO
 
 class Note:
     def __init__(self, pitch, duration):
-        self.pitch = pitch
+        self.pitch = []
+        self.pitch.append(pitch)
         self.duration = duration
 
     def addStarttime(self, starttime):  
@@ -39,16 +39,15 @@ class Note:
     def addEndtime(self, endtime):    
         self.endtime = endtime
 
-    def addHarmony(self, pitch):
-        pass
+    def addPitch(self, pitch):
+        self.pitch.append(pitch)
 
 
-# todo : Harmony
 def convertNote(path):
     temp_datas = []
-    # with open(path,"r") as f :
-    with open("./music/output.txt","r") as f :
-        # ['g3,0.5', 'a3,0.5', ... , 'f3,1']
+    with open(path,"r") as f :
+    # with open("./music/output.txt","r") as f :
+        # [g3,0.5 z,1 a3,0.5 ... f3,1 ]
         temp_datas = f.read().split(" ")
     
     notes = []
@@ -57,16 +56,23 @@ def convertNote(path):
         if temp_data != "":
             temp_note = temp_data.split(',')
 
-            note = Note(temp_note[0], temp_note[1])
-            notes.append(note)
+            # single note
+            if len(temp_note) == 2:
+                note = Note(temp_note[0], temp_note[1])
+                notes.append(note)
+            # harmony
+            else:
+                note = Note(temp_note[0], temp_note[-1])
+                for i in range(len(temp_note) - 2):
+                    note.addPitch(temp_note[i + 1])
+                    i += 1
+                notes.append(note)
 
     return notes
 
 
 def guide_mode(notes, speed='Moderato'):
-    print("GUIDE MODE.")
-
-    # Moderato 보통빠르게 Metronome 90 -> Quarter note per 0.666..second
+    # Moderato 보통빠르게 BPM 90 -> Quarter note per 0.666..second
     standard_time = None
     if speed == 'Moderato':
         standard_time = 0.666
@@ -78,7 +84,9 @@ def guide_mode(notes, speed='Moderato'):
         standard_time = 0.666
 
     for note in notes:
-        led.guideLEDmode(note, pianokeyboard.pressing_keyboard_set)
+        led.guideLEDmode(note)
+
+    guide_state = False
 
 
 def record_mode(pressing_keyboard_set):
@@ -86,38 +94,47 @@ def record_mode(pressing_keyboard_set):
     if len(record_list) >= 1000:
         record_state = False
 
-    if len(pressing_keyboard_set) == 0:
-        # not deleted temp_pressing_set
-        remain_set = temp_pressing_set - pressing_keyboard_set
+    past_time = None
+    current_time = None
 
-        if len(remain_set) != 0:
-            for ix in remain_set:
-                temp_pressing_set.remove(ix)
-                # duration
-                current_time = time.time()
-                # duration = current_time - past_time
-                # # pitch
-                # # todo : change
-                # pitch = 60
+    while True:
+        if len(pressing_keyboard_set) == 0:
+            past_time = time.time()
 
-                # note = Note(pitch, duration)
-                # record_mode.append(note)
+            # 이게 없으면 과부화때문인지 돌아가지 않는다..
+            time.sleep(0.1)
 
-    elif  len(pressing_keyboard_set) == 1:
-        for ix in pressing_keyboard_set:
-            if ix in temp_pressing_set:
-                pass
-            else:
-                temp_pressing_set.add(ix)
-                past_time = time.time()
+            if len(pressing_keyboard_set) != 0:
+                print(len(pressing_keyboard_set))
 
-    # 여기서 화음을 넣더라도, 건반을 뗄 떼 list에 추가하기가 너무 어려워지네..
-    else:
-        pass
+    #     # not deleted temp_pressing_set
+    #     remain_set = temp_pressing_set - pressing_keyboard_set
 
-    print(past_time)
-    
-    # print(record_list)
+    #     if len(remain_set) != 0:
+    #         for ix in remain_set:
+    #             temp_pressing_set.remove(ix)
+    #             # duration
+    #             current_time = time.time()
+    #             # duration = current_time - past_time
+    #             # # pitch
+    #             # # todo : change
+    #             # pitch = 60
+
+    #             # note = Note(pitch, duration)
+    #             # record_mode.append(note)
+
+    # elif  len(pressing_keyboard_set) == 1:
+    #     for ix in pressing_keyboard_set:
+    #         if ix in temp_pressing_set:
+    #             pass
+    #         else:
+    #             temp_pressing_set.add(ix)
+    #             past_time = time.time()
+
+    # # 여기서 화음을 넣더라도, 건반을 뗄 떼 list에 추가하기가 너무 어려워지네..
+    # else:
+    #     pass
+
 
 
 def marking_mode():
@@ -144,22 +161,36 @@ def marking_mode():
 def loop():
     while True:
         if guide_state:
-            guide_mode()
+            # multi processing
+            guide_mode.start()
+
+            while True:
+                pianokeyboard.piano_mode()
+
+                # 이상하게 계속 True로 있다. 어떻게 종료시킬지 생각해보자.
+                if not guide_state:
+                    print("IN")
+                    break
+        elif record_state:
+            record_mode.start()
+
+            while True:
+                pianokeyboard.piano_mode()
+
         elif marking_state:
             marking_mode()
         else:
-            pass
+            pianokeyboard.piano_mode()
             led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
 
-        
-        if record_state:
-            record_mode(pianokeyboard.pressing_keyboard_set)
-
-
-        pianokeyboard.piano_mode()
 
 
 
 if __name__ == '__main__':
+
+    notes = convertNote('./music/output.txt')
+
+    guide_mode = Thread(target = guide_mode, args=(notes, ))
+    record_mode = Thread(target = record_mode, args=(pianokeyboard.pressing_keyboard_set, ))
+
     loop()
-    # convertNote('abc')

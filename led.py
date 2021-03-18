@@ -15,13 +15,13 @@ current_pin_nums = [-1]
 
 temp_pressing_set = set()
 
-def turnonLED(pin_number):
+def turnonLED(index):
     # GPIO.output(index2pin[pin_number], GPIO.HIGH)
-    print("trun on " + str(constants.index2pin[pin_number]) + "LED")
+    print("trun on " + str(constants.index2pin[index]) + "LED")
 
-def turnoffLED(pin_number):
+def turnoffLED(index):
     # GPIO.output(index2pin[pin_number], GPIO.LOW)
-    print("trun off " + str(constants.index2pin[pin_number]) + "LED")
+    print("trun off " + str(constants.index2pin[index]) + "LED")
 
 
 def defaultLEDmode(pressing_keyboard_set):
@@ -41,46 +41,39 @@ def defaultLEDmode(pressing_keyboard_set):
             break
             
 
-
-
-
 def guideLEDmode(note, standard_time = 0.666):
-    if len(note) == 1:
-        note.pitch = pitch
-        note.duration = duration
+    # single note
+    if (len(note.pitch) == 1):
+        pitch = (note.pitch[0]).upper()
+        duration = note.duration
 
-        # need to multi processing
-        # if pitch == pitch_C4:
-        #     turnonLED(pinC4)
-        #     current_pin_num = pinC4
-        
-        # time.sleep(duration * standard_time)
-        # try:
-        #     turnoffLED(current_pin_num)
-        # except:
-        #     pass
-
-        # turn on LED
-        if pitch == PITCH_C4:
-            if current_pin_nums[0] == PIN_C4: 
-                pass
-            else:
-                current_pin_nums[0] = PIN_C4
-                past_time = time.time()
-                turnonLED(PIN_C4)
-
-        # turn off LED
-        current_time = time.time()
-        if (current_time - past_time >= duration * standard_time):
-            try:
-                turnoffLED(current_pin_nums[0])
-            except:
-                pass
-
-        
-
+        # rest
+        if pitch == 'z':
+            time.sleep(float(duration) * float(standard_time))
+        # note
+        else:
+            for comparing_pitch in constants.keyboard_pin:
+                if pitch == comparing_pitch:
+                    turnonLED(constants.pitch2index[pitch])
+                    time.sleep(float(duration) * float(standard_time))
+                    turnoffLED(constants.pitch2index[pitch])
+                    print("\n")
+                    break
     # harmonoy
     else:
-        # todo after 화음저장방식 정하고 나서.
-        pass
+        for pitch in note.pitch:
+            pitch = pitch.upper()
+            duration = note.duration
+
+            for comparing_pitch in constants.keyboard_pin:
+                if pitch == comparing_pitch:
+                    turnonLED(constants.pitch2index[pitch])
+                    break
+
+        time.sleep(float(duration) * float(standard_time))
+        for pitch in note.pitch:
+            pitch = pitch.upper()
+            turnoffLED(constants.pitch2index[pitch])
+        print("DONE")
+        
 

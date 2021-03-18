@@ -18,6 +18,12 @@ index2pin = {
     4 : LED_pin["LED_E4"], 
 }
 
+pitch2index = {
+    "C4" : 0,
+    "D4" : 2,
+    "E4" : 4,
+}
+
 
 pitch2MIDI = {
     "C8": 108,
