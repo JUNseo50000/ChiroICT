@@ -8,16 +8,17 @@ current_time = None
 current_pin_nums = [-1]
 
 # example
-PITCH_C4 = 60
-PIN_C4 = 17
-
+LED_C4 = 16
+LED_D4 = 26
 
 temp_pressing_set = set()
 
 def turnonLED(pin_number):
+    GPIO.output(pin_number, GPIO.LOW)
     print("trun on " + str(pin_number))
 
 def turnoffLED(pin_number):
+    GPIO.output(pin_number, GPIO.HIGH)
     print("trun off " + str(pin_number))
 
 

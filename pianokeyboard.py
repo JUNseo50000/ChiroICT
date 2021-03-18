@@ -1,4 +1,17 @@
 import pygame, time, keyboard
+import RPi.GPIO as GPIO
+
+
+PITCH_C4 = 64
+PIN_C4 = 23
+PITCH_D4 = 66
+PIN_D4 = 24
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(PIN_C4, GPIO.IN, GPIO.PUD_DOWN)
+GPIO.setup(PIN_D4, GPIO.IN, GPIO.PUD_DOWN)
 
 
 
@@ -35,7 +48,8 @@ class PianoKeyboard:
 
     def checkKeyboard(self, pin_number, value):
         ix = value - self.minValue
-        if keyboard.is_pressed(pin_number):
+        if GPIO.input(pin_number):
+        # if keyboard.is_pressed(pin_number):
             # pressing state is already true
             if ix in self.pressing_keyboard_set:
                 pass
@@ -52,16 +66,15 @@ class PianoKeyboard:
 
     # normal piano mode only sound not LED
     def piano_mode(self):
-        self.checkKeyboard('a', 64)
-        self.checkKeyboard('s', 66)
-        self.checkKeyboard('d', 68)
-        
+        self.checkKeyboard(PIN_C4, PITCH_C4)
+        self.checkKeyboard(PIN_D4, PITCH_D4)
+        # self.checkKeyboard('d', 68)        
 
 
 
 # for test
 if __name__ == "__main__":
-    PianoKeyboard = PianoKeyboard('Resources/Piano Samples')
+    PianoKeyboard = PianoKeyboard('Resources/PianoSamples')
     while True:
         PianoKeyboard.piano_mode()
 
