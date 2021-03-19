@@ -14,25 +14,22 @@ pianokeyboard = pianokeyboard.PianoKeyboard('Resources/PianoSamples')
 
 ### piano mode state ###
 guide_state = False
-record_state = True
-marking_state = False
+record_state = False
+marking_state = True
 
 
 
 '''
 TODO
-marking mode
-
+라즈베리 전원 들어오면 바로 실행되게 하는 것.
 모드 종료가 안되는 형상
-record에서 sleep(0.01)걸어놓는 것 고치기
-
+record, marking에서 sleep(0.01)걸어놓는 것 고치기
 '''
 
 
 class Note:
-    def __init__(self, pitch, duration):
-        self.pitch = []
-        self.pitch.append(pitch)
+    def __init__(self, pitch_list, duration):
+        self.pitch = pitch_list
         self.duration = duration
 
     def addStarttime(self, starttime):  
@@ -40,9 +37,6 @@ class Note:
 
     def addEndtime(self, endtime):    
         self.endtime = endtime
-
-    def addPitch(self, pitch):
-        self.pitch.append(pitch)
 
 def convertNote(path):
     temp_datas = []
@@ -57,23 +51,18 @@ def convertNote(path):
         if temp_data != "":
             temp_note = temp_data.split(',')
 
-            # single note
-            if len(temp_note) == 2:
-                note = Note(temp_note[0], temp_note[1])
-                notes.append(note)
-            # harmony
-            else:
-                note = Note(temp_note[0], temp_note[-1])
-                for i in range(len(temp_note) - 2):
-                    note.addPitch(temp_note[i + 1])
-                    i += 1
-                notes.append(note)
+            # note
+            duration = temp_note[-1]
+            pitch_list = []
+            for ix in range(len(temp_note) - 1):
+                pitch = temp_note[ix]
+                pitch_list.append(pitch)
+            note = Note(pitch_list, duration)
+            notes.append(note)
 
     return notes
 
-def guide_mode(notes, speed='Moderato'):
-    # Moderato 보통빠르게 BPM 90 -> Quarter note per 0.666..second
-    standard_time = None
+def getStandard_time(speed):
     if speed == 'Moderato':
         standard_time = 0.666
     # 120 bpm
@@ -82,6 +71,11 @@ def guide_mode(notes, speed='Moderato'):
     # Moderato
     else:
         standard_time = 0.666
+    return standard_time
+
+def guide_mode(notes, speed='Moderato'):
+    # Moderato 보통빠르게 BPM 90 -> Quarter note per 0.666..second
+    standard_time = getStandard_time(speed)
 
     for note in notes:
         led.guideLEDmode(note)
@@ -94,6 +88,7 @@ def record_mode(pressing_keyboard_set):
     current_time = time.time()
 
     # while True:
+    # todo : change break condition
     while len(record_list) <= 20:
         # memorry limit
         if len(record_list) >= 1000:
@@ -115,22 +110,7 @@ def record_mode(pressing_keyboard_set):
                     note = Note('z', duration)
                     record_list.append(note)
                     break
-        # single note
-        elif len(pressing_keyboard_set) == 1:
-            past_time = time.time()
-            for ix in pressing_keyboard_set:
-                pitch = constants.index2pitch[ix]
-            
-            while True:
-                time.sleep(0.01)
-
-                if len(pressing_keyboard_set) != 1:
-                    current_time = time.time()
-                    duration = current_time - past_time
-                    note = Note(pitch, duration)
-                    record_list.append(note)
-                    break
-        # harmony
+        # note
         else:
             num_pitch = len(pressing_keyboard_set)
             past_time = time.time()
@@ -138,6 +118,7 @@ def record_mode(pressing_keyboard_set):
             for ix in pressing_keyboard_set:
                 pitch = constants.index2pitch[ix]
                 pitch_list.append(pitch)
+
             
             while True:
                 time.sleep(0.01)
@@ -145,18 +126,14 @@ def record_mode(pressing_keyboard_set):
                 if len(pressing_keyboard_set) != num_pitch:
                     current_time = time.time()
                     duration = current_time - past_time
-                    note = Note(pitch_list[0], duration)
+                    note = Note(pitch_list, duration)
+                    # note = Note(pitch_list[0], duration)
 
-                    for ix in range(len(pitch_list) - 1):
-                        note.addPitch(pitch_list[ix + 1])
+                    # for ix in range(len(pitch_list) - 1):
+                    #         note.addPitch(pitch_list[ix + 1])
 
                     record_list.append(note)
                     break
-
-        # print("@@@@@@@@@@@@@@@@@@@")
-        # for note in record_list:
-        #     print(note.pitch)
-        # print("@@@@@@@@@@@@@@@@@@@")
 
     # convert to MIDI file
     midi = MIDIFile(1)
@@ -192,22 +169,70 @@ def record_mode(pressing_keyboard_set):
     binfile.close()
     print("Record Done")
 
+def marking_mode(compared_notes, pressing_keyboard_set, speed='Moderato'):
+    past_time = None
+    current_time = None
+    marking_list = []
 
-def marking_mode():
-    '''
-    record_mode에서 누른 건반의 정보와 시간을 기억하는
-    알고리즘을 생각했다면 이는 어렵지 않다.
-    시간은 무시하고 어떤 순서로 눌렀는지만 가져온다.
-    그리고 누른 건반을 리스트로 저장하고 source와 비교한다.
-    여기서 틀리는 것은 처리하기 쉽지만, 빼먹는 것은 또 생각을 해봐야 한다.
-    일단 생각 나는건, 빼먹었으면 배열의 다음 위치로 이동해서, 비교하는 것.
-    그런데 이건 그 다음것도 같았을 때 등 문제가 경우의수가 너무 많다.
+    # while True: 
+    while len(marking_list) < 5: 
 
-    그리고 몇번째 것이 틀렸는가는 알려주기 쉽지만 그것의 악보에서의 위치는?
+        time.sleep(0.01)
 
-    아니면 그냥 틀리면 삐 처리 하는 것을 생각해볼까..
-    '''
 
+        if len(pressing_keyboard_set) != 0:
+            num_pitch = len(pressing_keyboard_set)
+            past_time = time.time()
+            pitch_list = []
+            for ix in pressing_keyboard_set:
+                pitch = (constants.index2pitch[ix]).lower()
+                pitch_list.append(pitch)
+            
+
+            while True:
+                time.sleep(0.01)
+
+                if  len(pressing_keyboard_set) != num_pitch:
+                    current_time = time.time()
+                    duration = current_time - past_time
+                    # deal as harmony
+                    # 인식률이 완벽하진 않은데..
+                    if duration <= 0.05:
+                        break
+                    else:
+                        note = Note(pitch_list, duration)
+                        marking_list.append(note)
+                        break
+
+    print("\nMarking Done\n")
+    # for note in marking_list:
+    #     print(note.pitch)
+
+    # compare with compared_notes
+    ix = 0
+    standard_time = getStandard_time(speed)
+    for order, comparing_note in enumerate(marking_list):
+        # do not count about rest
+        while compared_notes[ix].pitch[0] == 'z':
+            ix += 1
+        compared_note = compared_notes[ix]
+        ix += 1
+        # compare about pitch
+        if comparing_note.pitch != compared_note.pitch:
+            print("-------------------------------------------")
+            print("Wrong pressing about " + str(order + 1) + "th note.")
+            print("You press the " + str(comparing_note.pitch))
+            print("Origin note is  " + str(compared_note.pitch))
+            print("-------------------------------------------")
+            continue
+        # compare about duration
+        diff_duration = float(comparing_note.duration) - float(compared_note.duration) * float(standard_time)
+        if diff_duration >= 0.3:
+            print("Too long press about " + str(order + 1) + "th note.")
+        elif diff_duration <= -0.3:
+            print("Too short press about " + str(order + 1) + "th note.")
+
+    print("Done marking mode")
 
 ### main loop ###
 def loop():
@@ -215,23 +240,25 @@ def loop():
         if guide_state:
             # multi processing
             guide_mode.start()
-
             while True:
                 pianokeyboard.piano_mode()
-
                 # 이상하게 계속 True로 있다. 어떻게 종료시킬지 생각해보자.
                 if not guide_state:
                     print("IN")
                     break
+
         elif record_state:
             record_mode.start()
-
             while True:
                 pianokeyboard.piano_mode()
                 led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
 
         elif marking_state:
-            marking_mode()
+            marking_mode.start()
+            while True:
+                pianokeyboard.piano_mode()
+                # led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
+
         else:
             pianokeyboard.piano_mode()
             led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
@@ -245,7 +272,8 @@ if __name__ == '__main__':
 
     # guide_mode = Process(target = guide_mode, args=(notes, "ABC"))
     # record_mode = Process(target = record_mode, args=(pianokeyboard.pressing_keyboard_set))
-    # guide_mode = Thread(target = guide_mode, args=(notes, ))
+    guide_mode = Thread(target = guide_mode, args=(notes, ))
     record_mode = Thread(target = record_mode, args=(pianokeyboard.pressing_keyboard_set, ))
+    marking_mode = Thread(target = marking_mode, args=(notes, pianokeyboard.pressing_keyboard_set, ))
 
     loop()
