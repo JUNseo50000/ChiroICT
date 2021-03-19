@@ -16,12 +16,12 @@ current_pin_nums = [-1]
 temp_pressing_set = set()
 
 def turnonLED(index):
-    # GPIO.output(index2pin[pin_number], GPIO.HIGH)
-    print("trun on " + str(constants.index2pin[index]) + "LED")
+    # GPIO.output(index2LEDpin[pin_number], GPIO.HIGH)
+    print("trun on " + str(constants.index2LEDpin[index]) + "LED")
 
 def turnoffLED(index):
-    # GPIO.output(index2pin[pin_number], GPIO.LOW)
-    print("trun off " + str(constants.index2pin[index]) + "LED")
+    # GPIO.output(index2LEDpin[pin_number], GPIO.LOW)
+    print("trun off " + str(constants.index2LEDpin[index]) + "LED")
 
 
 def defaultLEDmode(pressing_keyboard_set):

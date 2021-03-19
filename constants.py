@@ -12,7 +12,7 @@ LED_pin = {
     "LED_E4" : 30,
 }
 
-index2pin = {
+index2LEDpin = {
     0 : LED_pin["LED_C4"], 
     2 : LED_pin["LED_D4"], 
     4 : LED_pin["LED_E4"], 
@@ -22,6 +22,12 @@ pitch2index = {
     "C4" : 0,
     "D4" : 2,
     "E4" : 4,
+}
+
+index2pitch = {
+    0 : "C4",
+    2 : "D4",
+    4 : "E4",
 }
 
 
