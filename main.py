@@ -22,8 +22,6 @@ marking_state = True
 '''
 TODO
 라즈베리 전원 들어오면 바로 실행되게 하는 것.
-모드 종료가 안되는 형상
-record, marking에서 sleep(0.01)걸어놓는 것 고치기
 '''
 
 
@@ -80,6 +78,7 @@ def guide_mode(notes, speed='Moderato'):
     for note in notes:
         led.guideLEDmode(note)
 
+    global guide_state
     guide_state = False
 
 def record_mode(pressing_keyboard_set):
@@ -90,9 +89,9 @@ def record_mode(pressing_keyboard_set):
     # while True:
     # todo : change break condition
     while len(record_list) <= 20:
-        # memorry limit
-        if len(record_list) >= 1000:
-            record_state = False
+        # # memorry limit
+        # if len(record_list) >= 1000:
+        #     record_state = False
 
         # print(len(pressing_keyboard_set))
 
@@ -167,7 +166,11 @@ def record_mode(pressing_keyboard_set):
     binfile = open("output.mid", 'wb')
     midi.writeFile(binfile)
     binfile.close()
+
     print("Record Done")
+    global record_state
+    record_state = False
+    
 
 def marking_mode(compared_notes, pressing_keyboard_set, speed='Moderato'):
     past_time = None
@@ -233,6 +236,8 @@ def marking_mode(compared_notes, pressing_keyboard_set, speed='Moderato'):
             print("Too short press about " + str(order + 1) + "th note.")
 
     print("Done marking mode")
+    global marking_state
+    marking_state = False
 
 ### main loop ###
 def loop():
@@ -252,13 +257,16 @@ def loop():
             while True:
                 pianokeyboard.piano_mode()
                 led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
+                if not record_state:
+                    break
 
         elif marking_state:
             marking_mode.start()
             while True:
                 pianokeyboard.piano_mode()
                 # led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
-
+                if not marking_state:
+                    break
         else:
             pianokeyboard.piano_mode()
             led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
@@ -269,11 +277,9 @@ def loop():
 if __name__ == '__main__':
 
     notes = convertNote('./music/output.txt')
-
-    # guide_mode = Process(target = guide_mode, args=(notes, "ABC"))
-    # record_mode = Process(target = record_mode, args=(pianokeyboard.pressing_keyboard_set))
     guide_mode = Thread(target = guide_mode, args=(notes, ))
     record_mode = Thread(target = record_mode, args=(pianokeyboard.pressing_keyboard_set, ))
     marking_mode = Thread(target = marking_mode, args=(notes, pianokeyboard.pressing_keyboard_set, ))
+    print("Setup complete")
 
     loop()
