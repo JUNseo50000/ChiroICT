@@ -15,13 +15,14 @@ pianokeyboard = pianokeyboard.PianoKeyboard('Resources/PianoSamples')
 ### piano mode state ###
 guide_state = False
 record_state = False
-marking_state = True
+marking_state = False
 
 
 
 '''
 TODO
-라즈베리 전원 들어오면 바로 실행되게 하는 것.
+안드로이드로 py파일의 state를 바꾸는 것.
+라즈베리 전원 들어오면 바로 실행되게 하는 것. -> 어렵지 않음.
 '''
 
 
@@ -88,7 +89,7 @@ def record_mode(pressing_keyboard_set):
 
     # while True:
     # todo : change break condition
-    while len(record_list) <= 20:
+    while len(record_list) <= 50:
         # # memorry limit
         # if len(record_list) >= 1000:
         #     record_state = False

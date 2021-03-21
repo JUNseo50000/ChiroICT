@@ -23,7 +23,7 @@ class PianoKeyboard:
         self.channels = [pygame.mixer.Channel(i) for i in range(self.num_keyboard)]
         # keyboard pitch
         self.minValue = 60
-        self.maxValue = 72
+        self.maxValue = 71
         # for continuously pressing 
         self.pressing_keyboard_set = set()
 
