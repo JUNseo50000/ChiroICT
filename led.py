@@ -7,20 +7,21 @@ past_time = None
 current_time = None
 # -1 is initial value for comparsion : current_pin_nums[0]
 current_pin_nums = [-1]
-
-# setup
-# GPIO.setup(constants.constants["LED_C4"], GPIO.OUT)
-# GPIO.setup(constants.constants["LED_D4"], GPIO.OUT)
-
-
 temp_pressing_set = set()
 
+# setup
+# for key in constants.LED_pin.keys():
+#     GPIO.setup(constants.LED_pin[key], GPIO.OUT)
+
+
+
+
 def turnonLED(index):
-    # GPIO.output(index2LEDpin[pin_number], GPIO.HIGH)
+    # GPIO.output(constants.index2LEDpin[index], GPIO.HIGH)
     print("trun on " + str(constants.index2LEDpin[index]) + "LED")
 
 def turnoffLED(index):
-    # GPIO.output(index2LEDpin[pin_number], GPIO.LOW)
+    # GPIO.output(constants.index2LEDpin[index], GPIO.LOW)
     print("trun off " + str(constants.index2LEDpin[index]) + "LED")
 
 
@@ -57,7 +58,6 @@ def guideLEDmode(note, standard_time = 0.666):
                     turnonLED(constants.pitch2index[pitch])
                     time.sleep(float(duration) * float(standard_time))
                     turnoffLED(constants.pitch2index[pitch])
-                    print("\n")
                     break
     # harmonoy
     else:
@@ -74,6 +74,5 @@ def guideLEDmode(note, standard_time = 0.666):
         for pitch in note.pitch:
             pitch = pitch.upper()
             turnoffLED(constants.pitch2index[pitch])
-        print("DONE")
         
 

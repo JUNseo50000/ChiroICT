@@ -4,6 +4,7 @@ import keyboard
 from threading import Thread
 import multiprocessing
 from midiutil.MidiFile import MIDIFile
+# import bluetooth
 
 import pianokeyboard
 import led
@@ -13,7 +14,7 @@ import constants
 pianokeyboard = pianokeyboard.PianoKeyboard('Resources/PianoSamples')
 
 ### piano mode state ###
-guide_state = False
+guide_state = True
 record_state = False
 marking_state = False
 
@@ -21,8 +22,9 @@ marking_state = False
 
 '''
 TODO
-안드로이드로 py파일의 state를 바꾸는 것.
 라즈베리 전원 들어오면 바로 실행되게 하는 것. -> 어렵지 않음.
+False로 바꾸면 bluetooth로 보내는 것.
+bluetooth.py만드는 것
 '''
 
 
@@ -240,37 +242,96 @@ def marking_mode(compared_notes, pressing_keyboard_set, speed='Moderato'):
     global marking_state
     marking_state = False
 
+
+def receiveBluetooth(client_socket):
+    # b_data = client_socket.recv(1024)
+    # data = b_data.decode('utf-8')
+
+    global guide_state
+    global marking_state
+    global record_state
+
+    # todo : delete and above code revive
+    time.sleep(5)
+    data = "end guide_mode"
+
+    if data == "start default_mode":
+        pass
+    elif data == "start guide_mode":
+        guide_state = True
+    elif data == "end guide_mode":
+        guide_state = False
+
+    elif data == "start marking_mode":
+        marking_state = True
+    elif data == "end marking_mode":
+        marking_state = False
+
+    elif data == "start record_mode":
+        record_state = True
+    elif data == "end record_mode":
+        record_state = False
+
+
+
+
 ### main loop ###
 def loop():
     while True:
+        # todo : change parameter
+        receiveBluetooth(3)
+
         if guide_state:
-            # multi processing
-            guide_mode.start()
+            T_guide_mode.start()
+            T_receiveBluetooth.start()
             while True:
                 pianokeyboard.piano_mode()
-                # 이상하게 계속 True로 있다. 어떻게 종료시킬지 생각해보자.
                 if not guide_state:
-                    print("IN")
                     break
-
-        elif record_state:
-            record_mode.start()
+        if record_state:
+            T_record_mode.start()
+            T_receiveBluetooth.start()
             while True:
                 pianokeyboard.piano_mode()
                 led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
                 if not record_state:
                     break
-
-        elif marking_state:
-            marking_mode.start()
+        if marking_state:
+            T_marking_mode.start()
+            T_receiveBluetooth.start()
             while True:
                 pianokeyboard.piano_mode()
-                # led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
+                led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
                 if not marking_state:
                     break
-        else:
-            pianokeyboard.piano_mode()
-            led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
+
+
+    # while True:
+    #     if guide_state:
+    #         guide_mode.start()
+    #         while True:
+    #             pianokeyboard.piano_mode()
+    #             if not guide_state:
+    #                 break
+
+    #     elif record_state:
+    #         record_mode.start()
+    #         while True:
+    #             pianokeyboard.piano_mode()
+    #             led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
+    #             if not record_state:
+    #                 break
+
+    #     elif marking_state:
+    #         marking_mode.start()
+    #         while True:
+    #             pianokeyboard.piano_mode()
+    #             led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
+    #             if not marking_state:
+    #                 break
+    #     else:
+    #         pianokeyboard.piano_mode()
+    #         led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
 
 
 
@@ -278,9 +339,29 @@ def loop():
 if __name__ == '__main__':
 
     notes = convertNote('./music/output.txt')
-    guide_mode = Thread(target = guide_mode, args=(notes, ))
-    record_mode = Thread(target = record_mode, args=(pianokeyboard.pressing_keyboard_set, ))
-    marking_mode = Thread(target = marking_mode, args=(notes, pianokeyboard.pressing_keyboard_set, ))
+
+    # todo : uncomment
+    # bluetooth setting
+    # server_socket=bluetooth.BluetoothSocket(bluetooth.RFCOMM )
+    # port = 1
+    # server_socket.bind(("",port))
+    # server_socket.listen(1)
+    # client_socket,address = server_socket.accept()
+    # client_socket.send("bluetooth connected!")
+
+    # todo : delete
+    client_socket = 3
+
+    # multi threading
+    T_guide_mode = Thread(target = guide_mode, args=(notes, ))
+    T_record_mode = Thread(target = record_mode, args=(pianokeyboard.pressing_keyboard_set, ))
+    T_marking_mode = Thread(target = marking_mode, args=(notes, pianokeyboard.pressing_keyboard_set, ))
+    T_receiveBluetooth = Thread(target = receiveBluetooth, args=(client_socket,))
+
     print("Setup complete")
 
     loop()
+
+    # todo : uncomment
+    # client_socket.close()
+    # server_socket.close()

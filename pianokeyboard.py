@@ -3,14 +3,12 @@ import constants
 # import RPi.GPIO as GPIO
 
 
-
-
 # GPIO.setmode(GPIO.BCM)
 # GPIO.setwarnings(False)
-# GPIO.setup(PIN_C4, GPIO.IN, GPIO.PUD_DOWN)
-# GPIO.setup(PIN_D4, GPIO.IN, GPIO.PUD_DOWN)
 
-
+# for key in constants.keyboard_pin.keys():
+#     print(constants.keyboard_pin[key])
+#     GPIO.setup(constants.keyboard_pin[key], GPIO.IN, GPIO.PUD_DOWN)
 
 
 class PianoKeyboard:
@@ -63,12 +61,8 @@ class PianoKeyboard:
 
     # normal piano mode only sound not LED
     def piano_mode(self):
-        # self.checkKeyboard(constants.keyboard_pin["C4"],constants.pitch2MIDI["C4"])
-        # self.checkKeyboard(constants.keyboard_pin["D4"],constants.pitch2MIDI["D4"])
-        # self.checkKeyboard(PIN_D4, PITCH_D4)
-        self.checkKeyboard('a', constants.pitch2MIDI["C4"])        
-        self.checkKeyboard('s', constants.pitch2MIDI["D4"])        
-        self.checkKeyboard('d', constants.pitch2MIDI["E4"])        
+        for key in constants.keyboard_pin.keys():
+            self.checkKeyboard(constants.keyboard_pin[key], constants.pitch2MIDI[key])
 
 
 
