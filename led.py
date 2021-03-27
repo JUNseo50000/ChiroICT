@@ -1,27 +1,21 @@
 import time
-import pianokeyboard
 import constants
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
-past_time = None
-current_time = None
-# -1 is initial value for comparsion : current_pin_nums[0]
-current_pin_nums = [-1]
+
+# GPIO setup
+for key in constants.LED_pin.keys():
+    GPIO.setup(constants.LED_pin[key], GPIO.OUT)
+
 temp_pressing_set = set()
-
-# setup
-# for key in constants.LED_pin.keys():
-#     GPIO.setup(constants.LED_pin[key], GPIO.OUT)
-
-
 
 
 def turnonLED(index):
-    # GPIO.output(constants.index2LEDpin[index], GPIO.HIGH)
+    GPIO.output(constants.index2LEDpin[index], GPIO.HIGH)
     print("trun on " + str(constants.index2LEDpin[index]) + "LED")
 
 def turnoffLED(index):
-    # GPIO.output(constants.index2LEDpin[index], GPIO.LOW)
+    GPIO.output(constants.index2LEDpin[index], GPIO.LOW)
     print("trun off " + str(constants.index2LEDpin[index]) + "LED")
 
 
