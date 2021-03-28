@@ -64,19 +64,28 @@ def convertNote(path):
     return notes
 
 def getStandard_time(speed):
-    if speed == 'Moderato':
-        standard_time = 0.666
-    # 120 bpm
-    elif speed == 'Allegro':
-        standard_time = 0.5
-    # Moderato
+    # when speed is bpm
+    if speed.isdigit():
+        standard_time = speed/60
+    # when speed is tempo
     else:
-        standard_time = 0.666
+        # Moderato 보통빠르게 BPM 110 -> Quarter note per 0.5454..second
+        if speed == 'Moderato':
+            standard_time = 0.5454
+        # 130 bpm
+        elif speed == 'Allegro':
+            standard_time = 0.4615
+        # 90 bpm
+        elif speed == 'Andante':
+            standard_time = 0.6666
+        # Moderato
+        else:
+            standard_time = 0.5454
+
     return standard_time
 
 def guide_mode(speed='Moderato'):
     notes = convertNote('./music/output.txt')
-    # Moderato 보통빠르게 BPM 90 -> Quarter note per 0.666..second
     standard_time = getStandard_time(speed)
 
     for note in notes:
@@ -92,12 +101,6 @@ def record_mode(pressing_keyboard_set):
 
     global record_list
     while len(record_list) <= record_limit:
-        # # memorry limit
-        # if len(record_list) >= 1000:
-        #     record_state = False
-
-        # print(len(pressing_keyboard_set))
-
         # rest
         if len(pressing_keyboard_set) == 0:
             past_time = time.time()
@@ -132,7 +135,7 @@ def record_mode(pressing_keyboard_set):
                     break
 
 # convert to MIDI file
-def conver2MIDI():
+def convert2MIDI():
     midi = MIDIFile(1)
     track = 0
     record_time = 0
@@ -171,47 +174,48 @@ def conver2MIDI():
 def marking_mode(pressing_keyboard_set, speed='Moderato'):
     past_time = None
     current_time = None
-    marking_list = []
+    global record_list
     limit_notes = 1000
 
-    # while True: 
-    while len(marking_list) < limit_notes: 
+    while len(record_list) < limit_notes: 
+        pressing_num = len(pressing_keyboard_set)
+        past_time = time.time()
 
         time.sleep(0.01)
 
+        while True:
+            time.sleep(0.01)
 
-        if len(pressing_keyboard_set) != 0:
-            num_pitch = len(pressing_keyboard_set)
-            past_time = time.time()
-            pitch_list = []
-            for ix in pressing_keyboard_set:
-                pitch = (constants.index2pitch[ix]).lower()
-                pitch_list.append(pitch)
-            
+            if len(pressing_keyboard_set) != pressing_num:
+                # pass about rest
+                if pressing_num == 0:
+                    break
 
-            while True:
-                time.sleep(0.01)
+                current_time = time.time()
+                duration = current_time - past_time
+                
+                # pass about very short note
+                # because man can not press harmony at prefectly same time
+                if duration <= 0.06:
+                    break
 
-                if  len(pressing_keyboard_set) != num_pitch:
-                    current_time = time.time()
-                    duration = current_time - past_time
-                    # deal as harmony
-                    if duration <= 0.06:
-                        break
-                    else:
-                        note = Note(pitch_list, duration)
-                        marking_list.append(note)
-                        break
+                pitch_list = []
+                for ix in temp_pressing_set:
+                    pitch = (constants.index2pitch[ix]).lower()
+                    pitch_list.append(pitch)
+                note = Note(pitch_list, duration)
+                record_list.append(note)
+                break
 
     print("\nMarking Done\n")
 
 # compare with compared_notes
-def checkMarking():
+def checkMarking(client_socket):
     compared_notes = convertNote('./music/output.txt')
 
     ix = 0
     standard_time = getStandard_time(speed)
-    for order, comparing_note in enumerate(marking_list):
+    for order, comparing_note in enumerate(record_list):
         # do not count about rest
         while compared_notes[ix].pitch[0] == 'z':
             ix += 1
@@ -219,6 +223,11 @@ def checkMarking():
         ix += 1
         # compare about pitch
         if comparing_note.pitch != compared_note.pitch:
+            client_socket.send("-------------------------------------------")
+            client_socket.send("Wrong pressing about " + str(order + 1) + "th note.")
+            client_socket.send("You press the " + str(comparing_note.pitch))
+            client_socket.send("Origin note is  " + str(compared_note.pitch))
+            client_socket.send("-------------------------------------------")
             print("-------------------------------------------")
             print("Wrong pressing about " + str(order + 1) + "th note.")
             print("You press the " + str(comparing_note.pitch))
@@ -227,14 +236,20 @@ def checkMarking():
             continue
         # compare about duration
         diff_duration = float(comparing_note.duration) - float(compared_note.duration) * float(standard_time)
-        if diff_duration >= 0.3:
+        if diff_duration >= standard_time:
+            client_socket.send("Too long press about " + str(order + 1) + "th note.")
             print("Too long press about " + str(order + 1) + "th note.")
-        elif diff_duration <= -0.3:
+        elif diff_duration <= -standard_time:
+            client_socket.send("Too short press about " + str(order + 1) + "th note.")
             print("Too short press about " + str(order + 1) + "th note.")
 
     print("Done marking mode")
     global marking_state
     marking_state = False
+
+    # clera list
+    global record_list
+    record_list = []
 
 
 def receiveBluetooth(client_socket):
@@ -283,6 +298,8 @@ def loop(client_socket):
                 pianokeyboard.piano_mode()
                 if not guide_state:
                     break
+            T_guide_mode.join()
+            T_receiveBluetooth.join()
 
         elif record_state:
             T_record_mode.start()
@@ -291,7 +308,7 @@ def loop(client_socket):
                 pianokeyboard.piano_mode()
                 led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
                 if not record_state:
-                    conver2MIDI()
+                    convert2MIDI()
                     break
             T_record_mode.join()
             T_receiveBluetooth.join()
@@ -303,7 +320,7 @@ def loop(client_socket):
                 pianokeyboard.piano_mode()
                 led.defaultLEDmode(pianokeyboard.pressing_keyboard_set)
                 if not marking_state:
-                    checkMarking()
+                    checkMarking(client_socket)
                     break
             T_marking_mode.join()
             T_receiveBluetooth.join()
@@ -335,7 +352,6 @@ if __name__ == '__main__':
     T_record_mode = Thread(target = record_mode, args=(pianokeyboard.pressing_keyboard_set, ))
     T_marking_mode = Thread(target = marking_mode, args=(pianokeyboard.pressing_keyboard_set, ))
     T_receiveBluetooth = Thread(target = receiveBluetooth, args=(client_socket,))
-
     print("Setup complete")
 
     loop(client_socket)
